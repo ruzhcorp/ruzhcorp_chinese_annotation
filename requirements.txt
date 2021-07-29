@@ -1,0 +1,2 @@
+pkuseg==0.0.25
+fastHan==1.7
