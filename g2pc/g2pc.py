@@ -271,17 +271,16 @@ class G2pCFH(G2pC):
                     trads = features["trad"]
                     analyzed.append((word, pos, prons, meanings, trads))
                 else:
+                    prons = ''
                     for char in word:
                         if char in self.cedict:
                             features = self.cedict[char]
-                            prons = features["pron"]
-                            meanings = features["meaning"]
-                            trads = features["trad"]
+                            prons += features["pron"][0] + ' '
                         else:
-                            prons = [char]
-                            meanings = [""]
-                            trads = [char]
-                        analyzed.append((char, pos, prons, meanings, trads))
+                            prons += char
+                    if prons[-1] == ' ':
+                        prons = prons[:-1]
+                    analyzed.append((word, pos, [prons], [""], [word]))
             _sents.append(analyzed)
 
 
