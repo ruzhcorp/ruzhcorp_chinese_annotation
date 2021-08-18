@@ -1,2 +1,4 @@
 pkuseg==0.0.25
 fastHan==1.7
+sklearn_crfsuite
+hanziconv==0.3.2

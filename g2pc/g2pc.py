@@ -9,9 +9,9 @@ import re
 import os
 import pkuseg
 from itertools import chain
-from fastHan import FastHan
-model = FastHan(model_type='large', url="finetuned_model")
-model.set_cws_style('ctb')
+# from fastHan import FastHan
+# model = FastHan(model_type='large', url="finetuned_model")
+# model.set_cws_style('ctb')
 
 
 def convert_hanzi_string_to_number(string):
@@ -246,42 +246,42 @@ class G2pCFH(G2pC):
     """
     Класс, добавленный в ручную, чтобы заменить инструмент, который делит строку на токены
     """
-    def __call__(self, string):
+    def __call__(self, tokens):
         # fragment into sentences
-        sents = re.sub("([！？。])", r"\1[SEP]", string)
-        sents = sents.split("[SEP]")
+        # sents = re.sub("([！？。])", r"\1[SEP]", string)
+        # sents = sents.split("[SEP]")
 
         _sents = []
-        for sent in sents:
-            if len(sent)==0: continue
+        # for sent in sents:
+        # if len(sent)==0: continue
+        #
+        # # STEP 1
+        #
+        # tokens = model(sent, 'POS')[0]
 
-            # STEP 1
 
-            tokens = model(sent, 'POS')[0]
+        # STEP 2
+        analyzed = []
+        for word, pos in tokens:
 
-
-            # STEP 2
-            analyzed = []
-            for word, pos in tokens:
-               
-                if word in self.cedict:
-                    features = self.cedict[word]
-                    prons = features["pron"]
-                    meanings = features["meaning"]
-                    trads = features["trad"]
-                    analyzed.append((word, pos, prons, meanings, trads))
-                else:
-                    prons = ''
-                    for char in word:
-                        if char in self.cedict:
-                            features = self.cedict[char]
-                            prons += features["pron"][0] + ' '
-                        else:
-                            prons += char
-                    if prons[-1] == ' ':
-                        prons = prons[:-1]
-                    analyzed.append((word, pos, [prons], [""], [word]))
-            _sents.append(analyzed)
+            if word in self.cedict:
+                features = self.cedict[word]
+                prons = features["pron"]
+                meanings = features["meaning"]
+                trads = features["trad"]
+                analyzed.append((word, pos, prons, meanings, trads))
+            else:
+                prons = ''
+                for char in word:
+                    if char in self.cedict:
+                        features = self.cedict[char]
+                        prons += features["pron"][0] + ' '
+                    else:
+                        prons += char
+                if prons[-1] == ' ':
+                    prons = prons[:-1]
+                analyzed.append((word, pos, [prons], [""], [word]))
+        _sents.append(analyzed)
 
 
         # STEP 3
