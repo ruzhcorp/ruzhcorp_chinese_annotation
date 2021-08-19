@@ -41,8 +41,11 @@ class ChineseLine:
         Метод, который производит CWS и PoS-tagging
         :return: None
         """
-        self.line_segmented_trad = model(self.line_trad)[0]
         self.tokens = model(self.line_simple, 'POS')[0]
+        for token in self.tokens:
+            i = len(token[0])
+            self.line_segmented_trad.append(self.line_trad[:i])
+            self.line_trad = self.line_trad[i:]
 
     def custom_rules(self) -> None:
         """
