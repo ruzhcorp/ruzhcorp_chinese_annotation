@@ -105,6 +105,9 @@ class ChineseLine:
                                               'text': form})
                 self.line_pinyin.append({'analysis': [{'lex': transcr, 'transcr': transcr, 'gr': gr, 'form_i': form_i}],
                                          'text': transcr})
+                if i < len(self.tokens)-1:
+                    if self.tokens[i+1][1] != 'PU':
+                        self.line_pinyin.append({'text': ' '})
 
     def process(self) -> None:
         """
