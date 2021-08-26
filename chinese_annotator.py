@@ -68,6 +68,26 @@ class ChineseLine:
                         self.tokens[i + j] = ('·', 'PU')
                         self.line_segmented_trad[i + j] = '·'
                 i += length
+            elif re.search(r'^\d+[^0-9]+', self.tokens[i][0]):
+                self.tokens[i + 2:] = self.tokens[i + 1:]
+                self.line_segmented_trad[i + 2:] = self.line_segmented_trad[i + 1:]
+                token = self.tokens[i]
+                trad_token = self.line_segmented_trad[i]
+                self.tokens[i] = (re.findall(r'\d+', token[0])[0], 'CD')
+                self.line_segmented_trad[i] = re.findall(r'\d+', trad_token)[0]
+                self.tokens[i+1] = (re.findall(r'\d+(.+)', token[0])[0], token[1])
+                self.line_segmented_trad[i+1] = re.findall(r'\d+(.+)', trad_token)[0]
+                i += 2
+            elif re.search(r'[^0-9]+\d+$', self.tokens[i][0]):
+                self.tokens[i + 2:] = self.tokens[i + 1:]
+                self.line_segmented_trad[i + 2:] = self.line_segmented_trad[i + 1:]
+                token = self.tokens[i]
+                trad_token = self.line_segmented_trad[i]
+                self.tokens[i] = (re.findall(r'(.+)\d+', token[0])[0], token[1])
+                self.line_segmented_trad[i] = re.findall(r'(.+)\d+', trad_token)[0]
+                self.tokens[i + 1] = (re.findall(r'\d+', token[0])[0], 'CD')
+                self.line_segmented_trad[i + 1] = re.findall(r'\d+', trad_token)[0]
+                i += 2
             else:
                 i += 1
 
