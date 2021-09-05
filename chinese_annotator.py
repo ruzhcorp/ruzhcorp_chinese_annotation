@@ -55,39 +55,39 @@ class ChineseLine:
         i = 0
         while i < len(self.tokens):
             if '·' in self.tokens[i][0] and len(self.tokens[i][0]) > 1:
-                parts_hieroglyphs_simp = self.tokens[i][0].split('·')
-                parts_hieroglyphs_trad = self.line_segmented_trad[i].split('·')
-                length = len(parts_hieroglyphs_simp) * 2 - 1
-                self.tokens[i+length:] = self.tokens[i+1:]
-                self.line_segmented_trad[i+length:] = self.line_segmented_trad[i+1:]
+                if self.tokens[i][0].endswith('·') and self.tokens[i][0].startswith('·'):
+                    n_dot = '+'
+                    parts_hieroglyphs_simp = self.tokens[i][0].split('·')[1:-1]
+                    parts_hieroglyphs_trad = self.line_segmented_trad[i].split('·')[1:-1]
+                    length = len(parts_hieroglyphs_simp) * 2 + 1
+                elif self.tokens[i][0].endswith('·'):
+                    n_dot = '-'
+                    parts_hieroglyphs_simp = self.tokens[i][0].split('·')[:-1]
+                    parts_hieroglyphs_trad = self.line_segmented_trad[i].split('·')[:-1]
+                    length = len(parts_hieroglyphs_simp) * 2
+                elif self.tokens[i][0].startswith('·'):
+                    n_dot = '+'
+                    parts_hieroglyphs_simp = self.tokens[i][0].split('·')[1:]
+                    parts_hieroglyphs_trad = self.line_segmented_trad[i].split('·')[1:]
+                    length = len(parts_hieroglyphs_simp) * 2
+                else:
+                    n_dot = '-'
+                    parts_hieroglyphs_simp = self.tokens[i][0].split('·')
+                    parts_hieroglyphs_trad = self.line_segmented_trad[i].split('·')
+                    length = len(parts_hieroglyphs_simp) * 2 - 1
+                self.tokens.extend(['']*length)
+                self.line_segmented_trad.extend([''] * length)
+                self.tokens[i+length:] = self.tokens[i+1:-length]
+                self.line_segmented_trad[i+length:] = self.line_segmented_trad[i+1:-length]
+                pos = self.tokens[i][1]
                 for j in range(length):
-                    if j % 2 == 0:
-                        self.tokens[i+j] = (parts_hieroglyphs_simp[int(j/2)], self.tokens[i][1])
+                    if (j % 2 == 0 and n_dot == '-') or (j % 2 == 1 and n_dot == '+'):
+                        self.tokens[i+j] = (parts_hieroglyphs_simp[int(j/2)], pos)
                         self.line_segmented_trad[i+j] = parts_hieroglyphs_trad[int(j/2)]
                     else:
                         self.tokens[i + j] = ('·', 'PU')
                         self.line_segmented_trad[i + j] = '·'
                 i += length
-            elif re.search(r'^\d+[^0-9]+', self.tokens[i][0]):
-                self.tokens[i + 2:] = self.tokens[i + 1:]
-                self.line_segmented_trad[i + 2:] = self.line_segmented_trad[i + 1:]
-                token = self.tokens[i]
-                trad_token = self.line_segmented_trad[i]
-                self.tokens[i] = (re.findall(r'\d+', token[0])[0], 'CD')
-                self.line_segmented_trad[i] = re.findall(r'\d+', trad_token)[0]
-                self.tokens[i+1] = (re.findall(r'\d+(.+)', token[0])[0], token[1])
-                self.line_segmented_trad[i+1] = re.findall(r'\d+(.+)', trad_token)[0]
-                i += 2
-            elif re.search(r'[^0-9]+\d+$', self.tokens[i][0]):
-                self.tokens[i + 2:] = self.tokens[i + 1:]
-                self.line_segmented_trad[i + 2:] = self.line_segmented_trad[i + 1:]
-                token = self.tokens[i]
-                trad_token = self.line_segmented_trad[i]
-                self.tokens[i] = (re.findall(r'(.+)\d+', token[0])[0], token[1])
-                self.line_segmented_trad[i] = re.findall(r'(.+)\d+', trad_token)[0]
-                self.tokens[i + 1] = (re.findall(r'\d+', token[0])[0], 'CD')
-                self.line_segmented_trad[i + 1] = re.findall(r'\d+', trad_token)[0]
-                i += 2
             else:
                 i += 1
 
@@ -100,12 +100,10 @@ class ChineseLine:
                        '……': '...', '（': '(', '）': ')'}
         tokens = g2p(self.tokens)
         for token in tokens:
-            if re.search(r'[a-zA-Z]+?\d', token[2]):
-                self.line_g2p.append(convert_from_numerical_pinyin(token[2]).replace(' ', ''))
-            elif token[2] in punctuation:
+            if token[2] in punctuation:
                 self.line_g2p.append(punctuation[token[2]])
             else:
-                self.line_g2p.append(token[2])
+                self.line_g2p.append(''.join([convert_from_numerical_pinyin(x) if re.search(r'[aeuioAUIOE].*\d', x) else x for x in token[2].split()]))
 
     def postprocessing(self) -> None:
         """
