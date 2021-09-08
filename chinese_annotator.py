@@ -102,8 +102,14 @@ class ChineseLine:
         for token in tokens:
             if token[2] in punctuation:
                 self.line_g2p.append(punctuation[token[2]])
+            elif not re.search('[^a-zA-Z0-9]', token[0]):
+                self.line_g2p.append(token[0])
             else:
-                self.line_g2p.append(''.join([convert_from_numerical_pinyin(x) if re.search(r'[aeuioAUIOE].*\d', x) else x for x in token[2].split()]))
+                self.line_g2p.append(''.join(
+                        [convert_from_numerical_pinyin(x)
+                         if re.search(r'[aeuioAUIOE].*[12345]', x)
+                         else x for x in token[2].split()]
+                    ))
 
     def postprocessing(self) -> None:
         """
